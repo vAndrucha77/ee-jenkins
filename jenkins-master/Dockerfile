@@ -1,7 +1,7 @@
 # jenkinsci/jenkins is official repo
 # jenkins:lts is debian based 800mb, jenkins:lts-alpine is 200mb.
 FROM jenkinsci/jenkins:2.88-alpine
-MAINTAINER ollypom
+LABEL maintainer="vAndrucha77"
 
 # Add your UCP/DDR CA into an existing ca-cerificates file and copy this into the container.
 #USER root
@@ -10,8 +10,8 @@ MAINTAINER ollypom
 
 # Copy Accross UCP Certs
 USER root
-COPY ucp-bundle-jenkins.zip /home/jenkins/
-RUN (unzip /home/jenkins/ucp-bundle-jenkins.zip -d /home/jenkins/ && \
+COPY ucp-bundle-ci-pipeline.zip /home/jenkins/
+RUN (unzip /home/jenkins/ucp-bundle-ci-pipeline.zip -d /home/jenkins/ && \
     cp /home/jenkins/ca.pem /usr/local/share/ca-certificates/ca.pem && \
     update-ca-certificates)
 

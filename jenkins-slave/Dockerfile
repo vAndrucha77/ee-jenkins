@@ -1,5 +1,6 @@
 FROM alpine:3.6
-MAINTAINER olly@docker.com
+LABEL maintainer="vAndrucha77"
+LABEL versions="DockerClient17.10.0 Notary0.4.3"
 
 RUN apk add --upgrade --no-cache \
     ca-certificates \
@@ -8,7 +9,8 @@ RUN apk add --upgrade --no-cache \
     git \
     bash \
     sudo \
-    wget && \
+    wget \
+    curl && \
     rm -rf /var/cache/apk/*
 
 # Configure Java 8
@@ -17,9 +19,10 @@ RUN apk add --no-cache openjdk8 && \
     ln -sf "${JAVA_HOME}/bin/"* "/usr/bin/"
 
 # Copy Accross UCP Certs
-COPY ucp-bundle-jenkins.zip /home/jenkins/
-RUN (unzip /home/jenkins/ucp-bundle-jenkins.zip -d /home/jenkins/ && \
+COPY ucp-bundle-ci-pipeline.zip /home/jenkins/
+RUN (unzip /home/jenkins/ucp-bundle-ci-pipeline.zip -d /home/jenkins/ && \
     cp /home/jenkins/ca.pem /usr/local/share/ca-certificates/ca.pem && \
+    curl -k https://dtr.andreas.dtcntr.net/ca -o /usr/local/share/ca-certificates/dtr.andreas.dtcntr.net.crt && \
     update-ca-certificates)
 
 # Install the Docker Client
@@ -35,14 +38,14 @@ RUN (wget -O /usr/local/bin/notary "https://github.com/docker/notary/releases/do
   chmod +x /usr/local/bin/notary)
 
 # Add user jenkins to the image
-RUN (adduser -D -h /home/jenkins -s /bin/sh jenkins && \
+RUN (adduser -D -h /home/jenkins -s /bin/sh -G docker jenkins && \
     addgroup jenkins ping && \
     echo "jenkins:jenkins" | chpasswd && \
     chown -R jenkins:jenkins /home/jenkins/*)
-
+    
 # Expose SSH
 EXPOSE 22
 
 # Insert a Startup Script and Run it
 ADD jenkins-slave-startup.sh /
-CMD ["chmod +x /jenkins-slave-startup.sh && bash /jenkins-slave-startup.sh"]
+CMD chmod +x /jenkins-slave-startup.sh && bash /jenkins-slave-startup.sh
