@@ -1,6 +1,8 @@
-FROM alpine:3.6
+FROM jenkins/jnlp-slave:3.26-1-alpine
 LABEL maintainer="vAndrucha77"
 LABEL versions="DockerClient17.10.0 Notary0.4.3"
+
+USER root
 
 RUN apk add --upgrade --no-cache \
     ca-certificates \
@@ -13,10 +15,7 @@ RUN apk add --upgrade --no-cache \
     curl && \
     rm -rf /var/cache/apk/*
 
-# Configure Java 8
-ENV JAVA_HOME /usr/lib/jvm/default-jvm
-RUN apk add --no-cache openjdk8 && \
-    ln -sf "${JAVA_HOME}/bin/"* "/usr/bin/"
+
 
 # Copy Accross UCP Certs
 COPY ucp-bundle-ci-pipeline.zip /home/jenkins/
@@ -41,8 +40,7 @@ RUN (wget -O /usr/local/bin/notary "https://github.com/docker/notary/releases/do
 COPY docker/ /home/jenkins/.docker/ 
 
 # Add user jenkins to the image
-RUN (adduser -D -h /home/jenkins -s /bin/sh jenkins && \
-    addgroup jenkins ping && \
+RUN (addgroup jenkins ping && \
     echo "jenkins:jenkins" | chpasswd && \
     chown -R jenkins:jenkins /home/jenkins/* && \
     chown -R jenkins:jenkins /home/jenkins/.docker/ && \
@@ -51,6 +49,4 @@ RUN (adduser -D -h /home/jenkins -s /bin/sh jenkins && \
 # Expose SSH
 EXPOSE 22
 
-# Insert a Startup Script and Run it
-ADD jenkins-slave-startup.sh /
-CMD chmod +x /jenkins-slave-startup.sh && bash /jenkins-slave-startup.sh
+USER jenkins
